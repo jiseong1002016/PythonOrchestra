@@ -1,0 +1,17 @@
+Iteration: {iteration}
+Target directory: {target_dir}
+Primary command: {command}
+
+Latest execution result JSON:
+{latest_exec_json}
+
+Previous patch (if any):
+{previous_patch}
+
+Task:
+- Diagnose the current failure.
+- Propose the smallest safe fix.
+- Return ONLY the required JSON shape.
+- The `patch` field must be a valid unified diff that can be applied at repo root.
+- Keep patch size small and avoid touching unrelated files.
+- Include `tests_to_run` as shell commands to verify the fix.
