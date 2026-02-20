@@ -17,36 +17,62 @@ This workspace contains a runnable orchestrator that iteratively:
 - `configs/default.yaml` default orchestrator config
 - `pyproject.toml` pinned dependencies
 
-## Setup
+## Usage Guide (English / 한국어)
+
+### 1) Setup / 설치
 
 ```bash
 cd /home/Jiseong/PythonOrchestra_ws
+conda activate raisim
 python3 -m venv .venv
 source .venv/bin/activate
 pip install --upgrade pip
 pip install .
 ```
 
-## OpenAI API Key
+EN: Install dependencies in your environment before running the orchestrator.  
+KR: 오케스트레이터 실행 전, 위 명령으로 의존성을 먼저 설치하세요.
+
+### 2) OpenAI API Key / OpenAI API 키 설정
 
 ```bash
 export OPENAI_API_KEY="your_api_key_here"
 ```
 
-If `OPENAI_API_KEY` is missing, the orchestrator stops gracefully and records the error in artifacts.
+EN: If `OPENAI_API_KEY` is missing, the run stops and records the error in artifacts.  
+KR: `OPENAI_API_KEY`가 없으면 실행이 중단되고 오류가 artifacts에 기록됩니다.
 
-## Run Orchestrator
+EN: You can also store it in `/home/Jiseong/PythonOrchestra_ws/.env` as `OPENAI_API_KEY=...`.  
+KR: `/home/Jiseong/PythonOrchestra_ws/.env` 파일에 `OPENAI_API_KEY=...` 형태로 저장해도 됩니다.
+
+### 3) Run Orchestrator / 실행 방법
 
 ```bash
 python -m orchestrator.run --config configs/default.yaml
 ```
 
-## Inspect Artifacts
+EN: Basic run with default config.  
+KR: 기본 설정(`configs/default.yaml`)으로 실행합니다.
+
+Stage-machine example for bolt_wrench / bolt_wrench 스테이지 머신 실행 예시:
+
+```bash
+conda activate raisim
+python -m orchestrator.run --config configs/bolt_wrench_stage.yaml
+```
+
+EN: This starts from Stage 0 and advances to Stage 1 only after Stage 0 passes.  
+KR: Stage 0부터 시작하며, Stage 0 통과 전에는 Stage 1로 넘어가지 않습니다.
+
+### 4) Inspect Artifacts / 결과 확인
 
 - `artifacts/loop_state.json`: latest loop summary/status
 - `artifacts/latest.patch`: latest generated unified diff
 - `artifacts/latest_exec.json`: latest execution result
 - `artifacts/iter_XXX/`: per-iteration detailed payloads (`exec.json`, `judge.json`, `review_context.json`, `review.json`, `patch.diff`, etc.)
+
+EN: Check `loop_state.json` for current stage/index/iteration when resuming.  
+KR: 재시작/재개 시 현재 stage/index/iteration은 `loop_state.json`에서 확인하세요.
 
 ## Demo Target
 

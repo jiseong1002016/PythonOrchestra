@@ -4,7 +4,11 @@ from typing import Any
 
 
 class Judge:
-    def score(self, exec_result: dict[str, Any]) -> dict[str, Any]:
+    def score(
+        self,
+        exec_result: dict[str, Any],
+        previous_warnings: int | None = None,
+    ) -> dict[str, Any]:
         rc = int(exec_result.get("return_code", 1))
         parsed = exec_result.get("parsed", {})
         failed_tests = parsed.get("failed_tests")
@@ -25,8 +29,9 @@ class Judge:
                 score -= 5.0
                 reasons.append("nonzero_return_penalty:5")
 
-        if warnings:
-            warning_penalty = min(float(warnings) * 0.25, 2.0)
+        new_warnings = max(int(warnings) - int(previous_warnings or 0), 0)
+        if new_warnings:
+            warning_penalty = min(float(new_warnings) * 0.25, 2.0)
             score -= warning_penalty
             reasons.append(f"warnings_penalty:{warning_penalty}")
 
@@ -34,4 +39,6 @@ class Judge:
             "score": round(score, 3),
             "passed": rc == 0,
             "reasons": reasons,
+            "warnings": int(warnings),
+            "new_warnings": int(new_warnings),
         }

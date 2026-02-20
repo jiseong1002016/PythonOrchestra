@@ -1,0 +1,37 @@
+# configs/quixbugs_mock.yaml
+workspace_root: /home/Jiseong/Desktop/QuixBugs/
+target_dir: .
+max_iters: 15
+
+paths:
+  artifacts_dir: /home/Jiseong/PythonOrchestra/artifacts/quixbugs_mock
+  prompt_dir: /home/Jiseong/PythonOrchestra/orchestrator/prompts
+
+executor:
+  command: bash -lc 'pwd; ./.venv/bin/python --version; ./.venv/bin/python -c "import pytest; print(pytest.__version__)"; ./.venv/bin/python -m pytest -q python_testcases/test_gcd.py --maxfail=1'
+  timeout_sec: 120
+
+reviewer:
+  provider: command
+  command: "python tools/mock_reviewer_quixbugs_gcd.py"
+  command_timeout_sec: 30
+  model: gpt-4.1
+  temperature: 0.1
+  max_output_tokens: 4000
+  max_retries: 2
+  retry_backoff_sec: [10, 30]
+
+thresholds:
+  success_score: 10
+  same_error_repeats: 3
+  no_progress_repeats: 3
+  max_patch_changed_lines: 200
+
+ignore:
+  - .venv/
+  - venv/
+  - __pycache__/
+  - .pytest_cache/
+  - .git/
+  - artifacts/
+  - runs/

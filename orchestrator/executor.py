@@ -12,31 +12,53 @@ WARNING_RE = re.compile(r"(\d+)\s+warning")
 
 
 class Executor:
-    def __init__(self, target_dir: Path, command: str) -> None:
+    def __init__(self, target_dir: Path, command: str, timeout_sec: int = 300) -> None:
         self.target_dir = target_dir
         self.command = command
+        self.timeout_sec = timeout_sec
 
-    def run(self) -> dict[str, Any]:
+    def run(
+        self,
+        command: str | None = None,
+        stage_name: str | None = None,
+        step_name: str | None = None,
+    ) -> dict[str, Any]:
+        actual_command = command or self.command
         start = time.monotonic()
-        proc = subprocess.run(
-            shlex.split(self.command),
-            cwd=self.target_dir,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
+        try:
+            proc = subprocess.run(
+                shlex.split(actual_command),
+                cwd=self.target_dir,
+                capture_output=True,
+                text=True,
+                check=False,
+                timeout=self.timeout_sec,
+            )
+            return_code = proc.returncode
+            stdout = proc.stdout
+            stderr = proc.stderr
+        except subprocess.TimeoutExpired as exc:
+            return_code = 124
+            stdout = exc.stdout or ""
+            stderr = exc.stderr or ""
+        except FileNotFoundError as exc:
+            return_code = 127
+            stdout = ""
+            stderr = str(exc)
         duration = time.monotonic() - start
-        combined = f"{proc.stdout}\n{proc.stderr}".strip()
+        combined = f"{stdout}\n{stderr}".strip()
 
         failed_tests = self._parse_count(FAILED_RE, combined)
         warnings = self._parse_count(WARNING_RE, combined)
 
         return {
-            "command": self.command,
+            "command": actual_command,
             "cwd": str(self.target_dir),
-            "return_code": proc.returncode,
-            "stdout": proc.stdout,
-            "stderr": proc.stderr,
+            "stage_name": stage_name,
+            "step_name": step_name,
+            "return_code": return_code,
+            "stdout": stdout,
+            "stderr": stderr,
             "duration_sec": round(duration, 4),
             "parsed": {
                 "failed_tests": failed_tests,

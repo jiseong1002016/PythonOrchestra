@@ -1,9 +1,15 @@
 Iteration: {iteration}
 Target directory: {target_dir}
 Primary command: {command}
+Stage: {stage_name}
+Step: {step_name}
+Stage goal: {stage_goal}
 
 Latest execution result JSON:
 {latest_exec_json}
+
+Code context (from recent error locations, may be empty):
+{code_context}
 
 Previous patch (if any):
 {previous_patch}

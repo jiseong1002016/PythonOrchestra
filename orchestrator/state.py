@@ -41,8 +41,22 @@ class ArtifactStore:
         }
         self._write_json(self.artifacts_dir / "loop_state.json", payload)
 
+    def read_loop_state(self) -> dict[str, Any] | None:
+        path = self.artifacts_dir / "loop_state.json"
+        if not path.exists():
+            return None
+        try:
+            return json.loads(path.read_text(encoding="utf-8"))
+        except Exception:  # noqa: BLE001
+            return None
+
     def write_latest_exec(self, payload: dict[str, Any]) -> None:
         self._write_json(self.artifacts_dir / "latest_exec.json", payload)
+
+    def write_iteration_exec(self, iteration: int, payload: dict[str, Any]) -> None:
+        idir = self.iteration_dir(iteration)
+        self._write_json(idir / "exec.json", payload)
+        self._write_json(idir / "latest_exec.json", payload)
 
     def write_latest_patch(self, patch_text: str) -> None:
         (self.artifacts_dir / "latest.patch").write_text(patch_text, encoding="utf-8")

@@ -1,6 +1,9 @@
-workspace_root: /home/Jiseong/PythonOrchestra_ws
+workspace_root: .
 target_dir: target
 max_iters: 10
+paths:
+  artifacts_dir: artifacts
+  prompt_dir: orchestrator/prompts
 executor:
   command: pytest -q
 reviewer:

@@ -1,0 +1,37 @@
+# configs/quixbugs.yaml
+workspace_root: /home/Jiseong/Desktop/QuixBugs/         # <-- QuixBugs clone 위치로 수정
+target_dir: .
+max_iters: 15
+
+paths:
+  artifacts_dir: /home/Jiseong/PythonOrchestra/artifacts/quixbugs
+  prompt_dir: /home/Jiseong/PythonOrchestra/orchestrator/prompts
+
+executor:
+  # QuixBugs는 pytest로 실패/성공이 바로 갈린다.
+  # (venv/conda 활성화 상태에서 실행되는 것을 가정)
+  command: bash -lc 'pwd; ./.venv/bin/python --version; ./.venv/bin/python -c "import pytest; print(pytest.__version__)"; ./.venv/bin/python -m pytest -q python_testcases/test_gcd.py --maxfail=1'
+  timeout_sec: 120
+
+reviewer:
+  model: gpt-4.1
+  temperature: 0.1
+  max_output_tokens: 4000
+  max_retries: 2
+  retry_backoff_sec: [10, 30]
+
+thresholds:
+  success_score: 10
+  same_error_repeats: 3
+  no_progress_repeats: 3
+  max_patch_changed_lines: 200
+
+# (선택) 잡다한 파일/디렉토리는 패치 대상에서 제외하고 싶으면 사용
+ignore:
+  - .venv/
+  - venv/
+  - __pycache__/
+  - .pytest_cache/
+  - .git/
+  - artifacts/
+  - runs/

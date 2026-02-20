@@ -1,0 +1,93 @@
+workspace_root: /home/Jiseong/raisim_ws/raisimlib/raisimGymTorch/raisimGymTorch/env/envs/bolt_wrench
+target_dir: .
+max_iters: 12
+stop_after_stage: stage1
+
+paths:
+  artifacts_dir: /home/Jiseong/PythonOrchestra/artifacts/bolt_wrench_stage01
+  prompt_dir: /home/Jiseong/PythonOrchestra/orchestrator/prompts
+
+executor:
+  command: python -m pytest -q
+  timeout_sec: 1200
+
+reviewer:
+  provider: openai
+  model: gpt-4.1
+  temperature: 0.1
+  max_output_tokens: 4000
+  max_retries: 2
+  retry_backoff_sec: [10, 30]
+
+thresholds:
+  success_score: 10
+  same_error_repeats: 3
+  no_progress_repeats: 3
+  max_patch_changed_lines: 200
+
+stages:
+  - name: stage0
+    description: "Stage 0 gate: build + smoke + action mapping artifact"
+    max_iters: 12
+    steps:
+      - name: build
+        command: bash -lc 'mkdir -p build && cd build && cmake .. && cmake --build . -j'
+      - name: smoke
+        command: python smoke_test_p0.py
+    checks:
+      required_files:
+        - ACTION_MAPPING.md
+
+  - name: stage1
+    description: "Stage 1 gate: fast baseline runs + metrics headers"
+    max_iters: 12
+    steps:
+      - name: plain_baseline
+        command: python runner.py --cfg rsc/config_stage1.yaml --baseline plain --max-updates 5 --seed 5 --run-label stage1_plain
+      - name: demo_baseline
+        command: python runner.py --cfg rsc/config_stage1.yaml --baseline demo_init --max-updates 5 --seed 5 --demo-reset-prob 0.5 --run-label stage1_demo
+    checks:
+      require_new_files_since_stage_start: true
+      required_globs:
+        - runs/bolt_wrench_plain_*_seed5_stage1_plain/metrics.csv
+        - runs/bolt_wrench_demo_init_*_seed5_stage1_demo/metrics.csv
+      csv_header_checks:
+        - glob: runs/bolt_wrench_plain_*_seed5_stage1_plain/metrics.csv
+          required_columns:
+            - train_align_success_rate
+            - train_engage_success_rate
+            - train_rotate_start_success_rate
+            - train_align_near_step_ratio
+            - train_engage_near_step_ratio
+            - train_near_entry_count
+            - train_near_after_success_rate
+        - glob: runs/bolt_wrench_demo_init_*_seed5_stage1_demo/metrics.csv
+          required_columns:
+            - train_align_success_rate
+            - train_engage_success_rate
+            - train_rotate_start_success_rate
+            - train_align_near_step_ratio
+            - train_engage_near_step_ratio
+            - train_near_entry_count
+            - train_near_after_success_rate
+
+  - name: stage2
+    description: "Placeholder stage 2"
+    max_iters: 1
+    steps:
+      - name: placeholder
+        command: bash -lc 'echo stage2_placeholder'
+
+  - name: stage3
+    description: "Placeholder stage 3"
+    max_iters: 1
+    steps:
+      - name: placeholder
+        command: bash -lc 'echo stage3_placeholder'
+
+  - name: stage4
+    description: "Placeholder stage 4"
+    max_iters: 1
+    steps:
+      - name: placeholder
+        command: bash -lc 'echo stage4_placeholder'

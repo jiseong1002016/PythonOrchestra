@@ -1,0 +1,84 @@
+workspace_root: /home/Jiseong/raisim_ws/raisimlib/raisimGymTorch/raisimGymTorch/env/envs/bolt_wrench
+target_dir: .
+max_iters: 12
+
+paths:
+  artifacts_dir: /home/Jiseong/PythonOrchestra_ws/artifacts/bolt_wrench
+  prompt_dir: /home/Jiseong/PythonOrchestra_ws/orchestrator/prompts
+
+executor:
+  command: python -m pytest -q
+
+reviewer:
+  model: gpt-4.1
+  temperature: 0.1
+  max_output_tokens: 4000
+
+thresholds:
+  max_patch_changed_lines: 200
+
+stages:
+  - name: stage0
+    description: "Stage 0 gate: action-space mapping, reset stability, done/success definition, logging protocol lock"
+    max_iters: 12
+    steps:
+      - name: build
+        command: bash -lc "cd build && cmake .. && cmake --build ."
+      - name: smoke_p0
+        command: python smoke_test_p0.py
+    pass_checks:
+      required_files:
+        - ["ACTION_MAPPING.md", "docs/action_mapping.md"]
+
+  - name: stage1
+    description: "Stage 1 gate: phase/coverage/subgoal success logging and two baseline outputs"
+    max_iters: 12
+    steps:
+      - name: plain_baseline
+        command: python runner.py --cfg rsc/config_stage1.yaml --baseline plain --max-updates 5 --seed 5 --run-label stage1_plain
+      - name: demo_init_baseline
+        command: python runner.py --cfg rsc/config_stage1.yaml --baseline demo_init --max-updates 5 --seed 5 --run-label stage1_demo
+    pass_checks:
+      required_files:
+        - "runs/bolt_wrench_plain_*stage1_plain*/metrics.csv"
+        - "runs/bolt_wrench_demo_init_*stage1_demo*/metrics.csv"
+      required_regex:
+        - path: "runs/bolt_wrench_plain_*stage1_plain*/metrics.csv"
+          patterns:
+            - "train_align_success_rate"
+            - "train_engage_success_rate"
+            - "train_rotate_start_success_rate"
+            - "train_align_near_step_ratio"
+            - "train_engage_near_step_ratio"
+            - "train_near_entry_count"
+            - "train_near_after_success_rate"
+        - path: "runs/bolt_wrench_demo_init_*stage1_demo*/metrics.csv"
+          patterns:
+            - "train_align_success_rate"
+            - "train_engage_success_rate"
+            - "train_rotate_start_success_rate"
+            - "train_align_near_step_ratio"
+            - "train_engage_near_step_ratio"
+            - "train_near_entry_count"
+            - "train_near_after_success_rate"
+
+  - name: stage2
+    description: "Placeholder stage 2"
+    max_iters: 1
+    steps:
+      - name: placeholder
+        command: bash -lc "echo stage2_placeholder"
+
+  - name: stage3
+    description: "Placeholder stage 3"
+    max_iters: 1
+    steps:
+      - name: placeholder
+        command: bash -lc "echo stage3_placeholder"
+
+  - name: stage4
+    description: "Placeholder stage 4"
+    max_iters: 1
+    steps:
+      - name: placeholder
+        command: bash -lc "echo stage4_placeholder"
