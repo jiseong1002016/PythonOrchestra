@@ -12,7 +12,9 @@ executor:
   timeout_sec: 1200
 
 reviewer:
-  provider: openai
+  provider: command
+  command: "python tools/noop_reviewer.py"
+  command_timeout_sec: 30
   model: gpt-5.2
   temperature: 0.1
   max_output_tokens: 4000
